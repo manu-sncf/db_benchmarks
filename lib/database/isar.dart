@@ -16,9 +16,9 @@ class IsarDBImpl implements Benchmark {
   Future<void> setUp() async {
     final dir = await getApplicationDocumentsDirectory();
 
-    isar = await Isar.open(schemas: [IsarUserModelSchema], directory: dir.path);
+    isar = await Isar.open([IsarUserModelSchema], directory: dir.path);
     // delete all users in the schema
-    await isar.writeTxn((isar) async => await isar.isarUserModels.clear());
+    await isar.writeTxn(() async => await isar.isarUserModels.clear());
   }
 
   @override
@@ -46,11 +46,11 @@ class IsarDBImpl implements Benchmark {
     final castUsers = List.castFrom<User, IsarUserModel>(users);
     var s = Stopwatch()..start();
     if (optimise) {
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         await isar.isarUserModels.putAll(castUsers);
       });
     } else {
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         for (final user in castUsers) {
           await isar.isarUserModels.put(user);
         }
@@ -65,11 +65,11 @@ class IsarDBImpl implements Benchmark {
     var s = Stopwatch()..start();
     if (optimise) {
       final ids = users.map((e) => e.id).toList();
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         await isar.isarUserModels.deleteAll(ids);
       });
     } else {
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         for (final user in users) {
           await isar.isarUserModels.delete(user.id);
         }
@@ -96,9 +96,7 @@ class IsarDBImpl implements Benchmark {
   @override
   Future<int> getDbSize() async {
     final dir = await getApplicationDocumentsDirectory();
-    final files = dir
-        .listSync(recursive: true)
-        .where((file) => file.path.toLowerCase().contains('isar'));
+    final files = dir.listSync(recursive: true).where((file) => file.path.toLowerCase().contains('isar'));
     int size = 0;
     for (FileSystemEntity file in files) {
       final stat = file.statSync();

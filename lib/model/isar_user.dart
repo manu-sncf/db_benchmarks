@@ -4,7 +4,7 @@ part 'isar_user.g.dart';
 
 @Collection()
 class IsarUserModel implements User {
-  int id;
+  Id id;
   final DateTime createdAt;
   final String username;
   final String email;

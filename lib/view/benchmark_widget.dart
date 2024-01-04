@@ -2,10 +2,6 @@ import 'package:db_benchmarks/database/hive.dart';
 import 'package:db_benchmarks/database/isar.dart';
 import 'package:db_benchmarks/database/object_box.dart';
 import 'package:db_benchmarks/database/sembast.dart';
-import 'package:db_benchmarks/database/sqflite.dart';
-import 'package:db_benchmarks/database/sqflite_ffi.dart';
-import 'package:db_benchmarks/database/sqflite_json.dart';
-import 'package:db_benchmarks/database/sqlite_sync.dart';
 import 'package:db_benchmarks/interface/benchmark.dart';
 import 'package:db_benchmarks/model/result.dart';
 import 'package:db_benchmarks/runner/benchmark_runner_impl.dart';
@@ -35,17 +31,12 @@ class _BenchmarkWidgetState extends State<BenchmarkWidget> {
     runners = [
       HiveDBImpl(),
       SembasDBImpl(),
-      SqfliteDBImpl(),
-      SqfliteFFIDBImpl(),
       ObjectBoxDBImpl(),
       IsarDBImpl(),
     ];
     optimisedRunners = [
       HiveDBImpl(),
-      SqfliteDBImpl(),
-      SqfliteFFIDBImpl(),
-      SqfliteJsonDBImpl(),
-      SqliteSyncDBImpl(),
+      SembasDBImpl(),
       ObjectBoxDBImpl(),
       IsarDBImpl(),
     ];
@@ -73,14 +64,12 @@ class _BenchmarkWidgetState extends State<BenchmarkWidget> {
                     children: [
                       Text(
                         entries.toString() + " Entries",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Spacer(),
                       Text(
                         "Optimise ?",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Checkbox(
                           activeColor: Colors.blue,
@@ -121,8 +110,7 @@ class _BenchmarkWidgetState extends State<BenchmarkWidget> {
               color: Colors.black38,
               child: Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 30, horizontal: 50),
+                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 50),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     color: Theme.of(context).scaffoldBackgroundColor,

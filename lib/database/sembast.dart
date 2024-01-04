@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:db_benchmarks/interface/benchmark.dart';
 import 'package:db_benchmarks/interface/user.dart';
 import 'package:db_benchmarks/model/user.dart';
-import 'package:sembast/sembast.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 
 class SembasDBImpl implements Benchmark {
@@ -33,8 +33,12 @@ class SembasDBImpl implements Benchmark {
   @override
   Future<int> readUsers(List<User> users, bool optimise) async {
     var s = Stopwatch()..start();
-    for (final user in users) {
-      await store.record(user.id).get(db);
+    if (optimise) {
+      await store.records(users.map((e) => e.id)).get(db);
+    } else {
+      for (final user in users) {
+        await store.record(user.id).get(db);
+      }
     }
     s.stop();
     return s.elapsedMilliseconds;
@@ -42,9 +46,20 @@ class SembasDBImpl implements Benchmark {
 
   @override
   Future<int> writeUsers(List<User> users, bool optimise) async {
+    final usersMap = users.map((e) => e.toMap()).toList();
+    final usersId = users.map((e) => e.id);
+
     var s = Stopwatch()..start();
-    for (final user in users) {
-      await store.record(user.id).put(db, user.toMap());
+    if (optimise) {
+      await db.transaction((transaction) async {
+        await store.records(usersId).put(transaction, users.map((e) => e.toMap()).toList(), merge: false);
+      });
+    } else {
+      await db.transaction((transaction) async {
+        for (final user in usersMap) {
+          await store.record(user['id']).put(transaction, user, merge: false);
+        }
+      });
     }
     s.stop();
     return s.elapsedMilliseconds;
@@ -53,8 +68,14 @@ class SembasDBImpl implements Benchmark {
   @override
   Future<int> deleteUsers(List<User> users, bool optimise) async {
     var s = Stopwatch()..start();
-    for (final user in users) {
-      await store.record(user.id).delete(db);
+    if (optimise) {
+      await store.records(users.map((e) => e.id)).delete(db);
+    } else {
+      await db.transaction((transaction) async {
+        for (final user in users) {
+          await store.record(user.id).delete(transaction);
+        }
+      });
     }
     s.stop();
     return s.elapsedMilliseconds;
@@ -77,9 +98,7 @@ class SembasDBImpl implements Benchmark {
   @override
   Future<int> getDbSize() async {
     final dir = await getApplicationDocumentsDirectory();
-    final files = dir
-        .listSync()
-        .where((file) => file.path.toLowerCase().contains('sembast'));
+    final files = dir.listSync().where((file) => file.path.toLowerCase().contains('sembast'));
     int size = 0;
     for (FileSystemEntity file in files) {
       final stat = file.statSync();
